@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Sidebar, type View } from "@/components/sync/Sidebar";
 import { MetricCards } from "@/components/sync/MetricCards";
 import { SplitDiffView } from "@/components/sync/SplitDiffView";
+import { conflictRecord, syncMetrics } from "@/components/sync/mockData";
 import { RunHistoryTable } from "@/components/sync/RunHistoryTable";
 
 export const Route = createFileRoute("/")({
@@ -25,6 +26,16 @@ function Index() {
   const [dark, setDark] = useState(true);
   const [view, setView] = useState<View>("conflicts");
   const [collapsed, setCollapsed] = useState(false);
+  const [record, setRecord] = useState(conflictRecord);
+  const [totalConflicts, setTotalConflicts] = useState(syncMetrics.totalConflicts);
+  const resolve = (next: typeof conflictRecord) => {
+    setRecord(next);
+    setTotalConflicts(syncMetrics.totalConflicts - 1);
+  };
+  const reset = () => {
+    setRecord(conflictRecord);
+    setTotalConflicts(syncMetrics.totalConflicts);
+  };
   return (
     <div className={cn(dark && "dark")}>
       <div className="flex min-h-screen bg-background text-foreground">
@@ -40,7 +51,13 @@ function Index() {
             </button>
           </header>
           {view === "conflicts" ? (
-            <div className="space-y-6"><MetricCards /><SplitDiffView /></div>
+            <div className="space-y-6"><MetricCards totalConflicts={totalConflicts} />
+              <SplitDiffView
+                record={record}
+                onKeepAirtable={() => resolve({ ...record, notion: { ...record.airtable } })}
+                onKeepNotion={() => resolve({ ...record, airtable: { ...record.notion } })}
+                onReset={reset}
+              /></div>
           ) : <RunHistoryTable />}
         </main>
       </div>

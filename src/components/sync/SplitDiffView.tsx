@@ -1,12 +1,13 @@
-import { useState } from "react";
 import { AlertTriangle, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { conflictRecord, type RecordFields } from "./mockData";
 
+export type ConflictRecord = typeof conflictRecord;
 const keys = Object.keys(conflictRecord.airtable) as (keyof RecordFields)[];
-const conflicts = new Set(keys.filter((k) => k !== "Last Modified" && conflictRecord.airtable[k] !== conflictRecord.notion[k]));
+export const getConflicts = (r: ConflictRecord) =>
+  new Set(keys.filter((k) => k !== "Last Modified" && r.airtable[k] !== r.notion[k]));
 
-function Column({ title, data }: { title: string; data: RecordFields }) {
+function Column({ title, data, conflicts }: { title: string; data: RecordFields; conflicts: Set<string> }) {
   return (
     <div className="flex-1 p-5">
       <h3 className="mb-4 font-serif text-lg">{title}</h3>
@@ -25,31 +26,43 @@ function Column({ title, data }: { title: string; data: RecordFields }) {
   );
 }
 
-const Pill = () => (
+const Pill = ({ count }: { count: number }) => (
   <span className="inline-flex items-center gap-1 rounded-full bg-warning px-3 py-1 text-xs font-semibold text-primary-foreground">
-    <AlertTriangle className="h-3 w-3" /> Conflict · {conflicts.size} fields
+    <AlertTriangle className="h-3 w-3" /> Conflict · {count} fields
   </span>
 );
 
-export function SplitDiffView() {
-  const [resolved, setResolved] = useState<string | null>(null);
+const SyncedPill = () => (
+  <span className="inline-flex items-center gap-1 rounded-full bg-success px-3 py-1 text-xs font-semibold text-primary-foreground">
+    <Check className="h-3 w-3" /> Synced
+  </span>
+);
+
+export function SplitDiffView({ record, onKeepAirtable, onKeepNotion, onReset }: {
+  record: ConflictRecord; onKeepAirtable: () => void; onKeepNotion: () => void; onReset: () => void;
+}) {
+  const conflicts = getConflicts(record);
+  const synced = conflicts.size === 0;
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-card">
       <div className="flex flex-col md:flex-row">
-        <Column title="Airtable Record" data={conflictRecord.airtable} />
+        <Column title="Airtable Record" data={record.airtable} conflicts={conflicts} />
         <div className="hidden w-px bg-border md:block" />
         <div className="h-px bg-border md:hidden" />
-        <Column title="Notion Record" data={conflictRecord.notion} />
+        <Column title="Notion Record" data={record.notion} conflicts={conflicts} />
       </div>
       <div className="flex flex-wrap items-center gap-2 border-t border-border bg-muted/50 p-4">
-        {resolved ? (
-          <p className="flex items-center gap-2 text-sm text-success"><Check className="h-4 w-4" /> Resolved: {resolved}</p>
-        ) : <Pill />}
+        {synced ? (
+          <div className="flex items-center gap-3">
+            <SyncedPill />
+            <button onClick={onReset} className="text-xs text-muted-foreground underline-offset-2 hover:underline">Reset Conflict</button>
+          </div>
+        ) : <Pill count={conflicts.size} />}
         <div className="ml-auto flex flex-wrap gap-2">
-          {["Keep Airtable version", "Keep Notion version"].map((l) => (
-            <button key={l} onClick={() => setResolved(l)} className="rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-accent">{l}</button>
+          {([["Keep Airtable version", onKeepAirtable], ["Keep Notion version", onKeepNotion]] as const).map(([l, fn]) => (
+            <button key={l} onClick={fn} disabled={synced} className="rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-accent disabled:opacity-50">{l}</button>
           ))}
-          <button onClick={() => setResolved("Merge Manually")} className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">Merge Manually</button>
+          <button className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">Merge Manually</button>
         </div>
       </div>
     </div>
