@@ -1,9 +1,9 @@
 import { syncMetrics } from "./mockData";
 
-export function MetricCards() {
+export function MetricCards({ totalConflicts }: { totalConflicts: number }) {
   const items = [
     { label: "Last Synced", value: syncMetrics.lastSynced, cls: "text-lg" },
-    { label: "Total Conflicts", value: syncMetrics.totalConflicts, cls: "text-3xl text-warning" },
+    { label: "Total Conflicts", value: totalConflicts, cls: "text-3xl text-warning" },
     { label: "Orphaned Records", value: syncMetrics.orphanedRecords, cls: "text-3xl text-destructive" },
   ];
   return (
