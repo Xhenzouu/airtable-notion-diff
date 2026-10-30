@@ -35,12 +35,10 @@ export function SplitDiffView() {
   const [resolved, setResolved] = useState<string | null>(null);
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-card">
-      <div className="flex justify-center border-b border-border p-3 md:hidden"><Pill /></div>
+      <div className="flex justify-center border-b border-border p-3"><Pill /></div>
       <div className="flex flex-col md:flex-row">
         <Column title="Airtable Record" data={conflictRecord.airtable} />
-        <div className="relative hidden w-px bg-border md:block">
-          <div className="absolute left-1/2 top-4 -translate-x-1/2 whitespace-nowrap"><Pill /></div>
-        </div>
+        <div className="hidden w-px bg-border md:block" />
         <div className="h-px bg-border md:hidden" />
         <Column title="Notion Record" data={conflictRecord.notion} />
       </div>
