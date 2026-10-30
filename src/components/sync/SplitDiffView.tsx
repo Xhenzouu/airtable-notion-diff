@@ -35,7 +35,6 @@ export function SplitDiffView() {
   const [resolved, setResolved] = useState<string | null>(null);
   return (
     <div className="overflow-hidden rounded-lg border border-border bg-card">
-      <div className="flex justify-center border-b border-border p-3"><Pill /></div>
       <div className="flex flex-col md:flex-row">
         <Column title="Airtable Record" data={conflictRecord.airtable} />
         <div className="hidden w-px bg-border md:block" />
@@ -45,7 +44,7 @@ export function SplitDiffView() {
       <div className="flex flex-wrap items-center gap-2 border-t border-border bg-muted/50 p-4">
         {resolved ? (
           <p className="flex items-center gap-2 text-sm text-success"><Check className="h-4 w-4" /> Resolved: {resolved}</p>
-        ) : <p className="text-sm text-muted-foreground">Record {conflictRecord.id}</p>}
+        ) : <Pill />}
         <div className="ml-auto flex flex-wrap gap-2">
           {["Keep Airtable version", "Keep Notion version"].map((l) => (
             <button key={l} onClick={() => setResolved(l)} className="rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-accent">{l}</button>
